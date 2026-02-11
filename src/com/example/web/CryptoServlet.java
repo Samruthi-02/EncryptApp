@@ -3,14 +3,10 @@ package com.example.web;
 import java.io.IOException;
 import com.example.util.CryptoUtils;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-// For Tomcat 9, use javax.servlet.* instead of jakarta.servlet.*
-
-//@WebServlet("/crypto")
 public class CryptoServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)

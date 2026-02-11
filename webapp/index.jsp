@@ -106,6 +106,125 @@
             font-style: italic;
         }
 
+        /* Tab Styles */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #e1e5e9;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 15px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: #7f8c8d;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            margin-bottom: -2px;
+        }
+
+        .tab-btn:hover {
+            color: #667eea;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* File Upload Styles */
+        .file-upload-wrapper {
+            position: relative;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            background: rgba(102, 126, 234, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload-area:hover {
+            border-color: #764ba2;
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .file-upload-area.dragover {
+            border-color: #764ba2;
+            background: rgba(102, 126, 234, 0.15);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .file-upload-area p {
+            margin: 10px 0;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .file-name {
+            display: block;
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(39, 174, 96, 0.1);
+            border-radius: 8px;
+            color: #27ae60;
+            font-size: 14px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .file-name.show {
+            display: block;
+        }
+
+        .image-preview {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e1e5e9;
+        }
+
+        .image-preview label {
+            margin-bottom: 15px;
+        }
+
+
         .button-group {
             display: flex;
             gap: 15px;
@@ -270,22 +389,52 @@
             <p class="subtitle">Military-Grade AES Encryption & Decryption</p>
         </div>
 
-        <form action="crypto" method="post" id="cryptoForm">
+        <form action="crypto" method="post" id="cryptoForm" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="secretKey">🔑 Secret Key</label>
                 <input type="text" id="secretKey" name="secretKey" 
-                       placeholder="Enter exactly 16 characters (e.g., MySecretKey12345)" 
-                       required minlength="16" maxlength="16"
-                       pattern=".{16}" title="Must be exactly 16 characters">
-                <div class="input-hint">Example: MySecureKey2024! or CompanySecret123</div>
+                       placeholder="Enter your secret key (any length)" 
+                       required minlength="8"
+                       title="Must be at least 8 characters">
+                <div class="input-hint">Use any passphrase - will be auto-hashed for AES-256</div>
             </div>
 
-            <div class="form-group">
-                <label for="inputText">📝 Text to Process</label>
-                <textarea id="inputText" name="inputText" 
-                          placeholder="Type your secret message here to encrypt or paste encrypted text to decrypt..." 
-                          required></textarea>
-                <div class="input-hint">For encryption: Enter plain text | For decryption: Paste encrypted code</div>
+            <div class="tabs">
+                <button type="button" class="tab-btn active" data-tab="text-tab">📝 Text</button>
+                <button type="button" class="tab-btn" data-tab="file-tab">🖼️ Image/File</button>
+            </div>
+
+            <!-- Text Input Tab -->
+            <div id="text-tab" class="tab-content active">
+                <div class="form-group">
+                    <label for="inputText">Text to Process</label>
+                    <textarea id="inputText" name="inputText" 
+                              placeholder="Type your secret message here to encrypt or paste encrypted text to decrypt..." 
+                              ></textarea>
+                    <div class="input-hint">For encryption: Enter plain text | For decryption: Paste encrypted code</div>
+                </div>
+            </div>
+
+            <!-- File Upload Tab -->
+            <div id="file-tab" class="tab-content">
+                <div class="form-group">
+                    <label for="fileInput">Choose Image or File</label>
+                    <div class="file-upload-wrapper">
+                        <input type="file" id="fileInput" name="file" accept="image/*,.pdf,.doc,.docx,.zip">
+                        <div class="file-upload-area">
+                            <span class="upload-icon">📤</span>
+                            <p>Click to select or drag & drop your image/file here</p>
+                            <span class="file-name" id="fileName"></span>
+                        </div>
+                    </div>
+                    <div class="input-hint">Supported: Images (JPG, PNG, GIF, etc.), PDF, Documents, Archives</div>
+                </div>
+
+                <!-- Image Preview -->
+                <div id="imagePreview" style="display: none;" class="image-preview">
+                    <label>Preview</label>
+                    <img id="previewImg" alt="Preview" style="max-width: 100%; max-height: 300px; border-radius: 8px;">
+                </div>
             </div>
 
             <div class="button-group">
@@ -306,10 +455,10 @@
         <div class="features">
             <h3>✨ Why Choose SecureCrypt?</h3>
             <ul class="feature-list">
-                <li>AES-128 Bit Encryption</li>
-                <li>Secure ECB Mode</li>
-                <li>Base64 Encoding</li>
-                <li>Real-time Processing</li>
+                <li>AES-256 Encryption</li>
+                <li>SHA-256 Key Hashing</li>
+                <li>Image Encryption</li>
+                <li>File Support</li>
                 <li>Zero Data Storage</li>
                 <li>Mobile Responsive</li>
             </ul>
@@ -321,20 +470,109 @@
     </div>
 
     <script>
-        // Enhanced form validation with user feedback
+        // Tab Switching
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                
+                // Remove active from all buttons and contents
+                tabBtns.forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Add active to clicked button and corresponding content
+                this.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+                
+                // Clear validation of hidden tab
+                if (tabId === 'file-tab') {
+                    document.getElementById('inputText').removeAttribute('required');
+                } else {
+                    document.getElementById('inputText').setAttribute('required', 'required');
+                }
+            });
+        });
+
+        // File Upload Handling
+        const fileInput = document.getElementById('fileInput');
+        const fileUploadArea = document.querySelector('.file-upload-area');
+        const fileName = document.getElementById('fileName');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewImg = document.getElementById('previewImg');
+
+        fileUploadArea.addEventListener('click', () => fileInput.click());
+
+        fileUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.add('dragover');
+        });
+
+        fileUploadArea.addEventListener('dragleave', () => {
+            fileUploadArea.classList.remove('dragover');
+        });
+
+        fileUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelect();
+            }
+        });
+
+        fileInput.addEventListener('change', handleFileSelect);
+
+        function handleFileSelect() {
+            const file = fileInput.files[0];
+            if (file) {
+                fileName.textContent = '✅ ' + file.name + ' (' + formatFileSize(file.size) + ')';
+                fileName.classList.add('show');
+
+                // Show image preview for image files
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        previewImg.src = e.target.result;
+                        imagePreview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    imagePreview.style.display = 'none';
+                }
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        // Enhanced form validation
         document.getElementById('cryptoForm').addEventListener('submit', function(e) {
             const key = document.getElementById('secretKey').value;
+            const activeTab = document.querySelector('.tab-content.active').id;
+            const file = document.getElementById('fileInput').files[0];
             const text = document.getElementById('inputText').value;
             const loading = document.getElementById('loading');
             
-            if (key.length !== 16) {
-                alert('❌ Secret key must be exactly 16 characters long!\n\nExample: MySecretKey12345');
+            if (key.length < 8) {
+                alert('❌ Secret key must be at least 8 characters long!');
                 e.preventDefault();
                 return;
             }
             
-            if (!text.trim()) {
+            if (activeTab === 'text-tab' && !text.trim()) {
                 alert('📝 Please enter some text to process!');
+                e.preventDefault();
+                return;
+            }
+
+            if (activeTab === 'file-tab' && !file) {
+                alert('📤 Please select a file to process!');
                 e.preventDefault();
                 return;
             }
@@ -345,11 +583,11 @@
             // Hide loading if there's an error (fallback)
             setTimeout(() => {
                 loading.style.display = 'none';
-            }, 5000);
+            }, 10000);
         });
 
         // Interactive input effects
-        const inputs = document.querySelectorAll('input, textarea');
+        const inputs = document.querySelectorAll('input[type="text"], textarea');
         inputs.forEach(input => {
             input.addEventListener('focus', () => {
                 input.style.transform = 'scale(1.02)';
@@ -375,12 +613,12 @@
             const length = this.value.length;
             const hint = this.nextElementSibling;
             
-            if (length === 16) {
-                hint.innerHTML = '✅ Perfect! Key is 16 characters';
+            if (length >= 8) {
+                hint.innerHTML = '✅ Key length: ' + length + ' characters';
                 hint.style.color = '#27ae60';
             } else {
-                hint.innerHTML = `⚠️ ${16 - length} characters remaining`;
-                hint.style.color = length > 16 ? '#e74c3c' : '#7f8c8d';
+                hint.innerHTML = `⚠️ ${8 - length} more characters needed (minimum 8)`;
+                hint.style.color = '#7f8c8d';
             }
         });
     </script>
