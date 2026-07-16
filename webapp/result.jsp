@@ -262,16 +262,36 @@
 
         <% if (request.getAttribute("result") != null) { %>
             <div class="result-section animated">
-                <span class="result-label">
-                    📋 <span>Processed Result</span>
-                </span>
-                <div class="result-box" id="resultOutput">
-                    <%= request.getAttribute("result") %>
-                </div>
-                
-                <button class="btn copy-btn" onclick="copyToClipboard()">
-                    📋 Copy to Clipboard
-                </button>
+                <% Boolean isFile = (Boolean) request.getAttribute("isFile"); %>
+                <% if (isFile != null && isFile) { %>
+                    <!-- File Result -->
+                    <span class="result-label">
+                        🔐 Encrypted/Decrypted File (Base64)
+                    </span>
+                    <div class="result-box" id="resultOutput" style="max-height: 200px;">
+                        <%= request.getAttribute("result").toString().substring(0, Math.min(200, request.getAttribute("result").toString().length())) %>...
+                    </div>
+                    
+                    <button class="btn copy-btn" onclick="copyFileResult()">
+                        📋 Copy File Data
+                    </button>
+                    
+                    <button class="btn copy-btn" style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); margin-top: 10px;" onclick="downloadEncryptedFile()">
+                        💾 Download Encrypted File
+                    </button>
+                <% } else { %>
+                    <!-- Text Result -->
+                    <span class="result-label">
+                        📋 Processed Text
+                    </span>
+                    <div class="result-box" id="resultOutput">
+                        <%= request.getAttribute("result") %>
+                    </div>
+                    
+                    <button class="btn copy-btn" onclick="copyToClipboard()">
+                        📋 Copy to Clipboard
+                    </button>
+                <% } %>
             </div>
         <% } %>
 
@@ -300,19 +320,31 @@
         function copyToClipboard() {
             const resultText = document.getElementById('resultOutput').textContent;
             navigator.clipboard.writeText(resultText).then(() => {
-                // Show temporary success message
-                const btn = document.querySelector('.copy-btn');
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '✅ Copied!';
-                btn.style.background = 'linear-gradient(135deg, #27ae60 0%, #2ecc71 100%)';
-                
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                    btn.style.background = 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)';
-                }, 2000);
+                showCopySuccess();
             }).catch(err => {
                 alert('Failed to copy: ' + err);
             });
+        }
+
+        function copyFileResult() {
+            const fullResult = '<%= request.getAttribute("result") %>';
+            navigator.clipboard.writeText(fullResult).then(() => {
+                showCopySuccess();
+            }).catch(err => {
+                alert('Failed to copy: ' + err);
+            });
+        }
+
+        function showCopySuccess() {
+            const btn = document.querySelector('.copy-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '✅ Copied!';
+            btn.style.background = 'linear-gradient(135deg, #27ae60 0%, #2ecc71 100%)';
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)';
+            }, 2000);
         }
 
         function downloadResult() {
@@ -325,6 +357,32 @@
             const now = new Date();
             const timestamp = now.toISOString().replace(/[:.]/g, '-');
             a.download = `securecrypt-result-${timestamp}.txt`;
+            
+            a.href = url;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadEncryptedFile() {
+            const base64Data = '<%= request.getAttribute("result") %>';
+            const fileName = '<%= request.getAttribute("fileName") %>';
+            
+            // Decode Base64 to binary
+            const binaryString = atob(base64Data);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            
+            // Create blob and download
+            const blob = new Blob([bytes], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            
+            // Create encrypted filename
+            const now = new Date();
+            const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            a.download = `${fileName}.encrypted.${timestamp}`;
             
             a.href = url;
             a.click();
